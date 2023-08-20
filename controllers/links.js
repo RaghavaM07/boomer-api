@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const { ObjectId } = require('mongoose').Types;
 
 const Link = require('../models/link');
 
@@ -13,16 +14,21 @@ module.exports.redirectController = asyncHandler(async (req, res) => {
 	}
 
 	// 3. Check link privacy
+	if (link.isPrivate === true) {
+		if (!req.user || req.user.id !== link.creator.toString()) {
+			return res.status(401).json({ error: 'PRIVATE_LINK' });
+		}
+	}
 
-	// 4. Add analytics
-
-	// 5. Redirect to destination
+	// 4. Redirect to destination
 	res.status(302).redirect(link.dest);
 });
 
 module.exports.makeLink = asyncHandler(async (req, res) => {
 	// 1. Get custom short code, destination, privacy
 	const { shortCode, dest, isPrivate } = req.body;
+	const creator = req.user.id;
+
 	if (!shortCode || !dest) {
 		return res.status(400).json({ error: 'FIELDS_UNSPECIFIED' });
 	}
@@ -34,9 +40,9 @@ module.exports.makeLink = asyncHandler(async (req, res) => {
 	}
 
 	// 3. Create new link
-	const newLink = await Link.create({ shortCode, dest, isPrivate });
+	const newLink = await Link.create({ shortCode, dest, isPrivate, creator: new ObjectId(creator) });
 	if (!newLink) {
-		return res.status(500).json({ error: 'LINK_NOT_CREATED' });
+		return res.status(500).json({ error: 'COULD_NOT_CREATE_LINK' });
 	}
 
 	// 4. Return new link
@@ -53,7 +59,11 @@ module.exports.deleteLink = asyncHandler(async (req, res) => {
 		return res.status(404).json({ error: 'SHORT_CODE_DNE' });
 	}
 
-	// 3. Check link creator
+	// 3. Verify ownership
+	const { creator } = link;
+	if (creator.toString() !== req.user.id) {
+		return res.status(401).json({ error: 'UNAUTHORIZED' });
+	}
 
 	// 4. Delete link
 	const del = await Link.deleteOne({ shortCode });
@@ -74,6 +84,10 @@ module.exports.updateLink = asyncHandler(async (req, res) => {
 	}
 
 	// 3. Verify ownership
+	const { creator } = link;
+	if (creator.toString() !== req.user.id) {
+		return res.status(401).json({ error: 'UNAUTHORIZED' });
+	}
 
 	// 4. Update link
 	let { dest, isPrivate } = req.body;

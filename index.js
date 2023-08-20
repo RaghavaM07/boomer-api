@@ -5,12 +5,14 @@ const app = express();
 const mongoose = require('mongoose');
 
 const { redirectController } = require('./controllers/links');
+const optionalLogin = require('./middleware/optionalLogin');
 
 
 app.use(express.json());
 
 app.use('/links', require('./routes/links'));
-app.get('/:shortCode', redirectController);
+app.use('/auth', require('./routes/auth'));
+app.get('/:shortCode', optionalLogin, redirectController);
 
 
 mongoose.connect(process.env.MONGO_URI).then(() => console.log('Connected to DB'));

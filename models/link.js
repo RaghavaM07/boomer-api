@@ -12,6 +12,10 @@ const linkSchema = new mongoose.Schema({
 	isPrivate: {
 		type: Boolean,
 		default: false
+	},
+	creator: {
+		type: mongoose.Types.ObjectId,
+		ref: 'User'
 	}
 });
 
