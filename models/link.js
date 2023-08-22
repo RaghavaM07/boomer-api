@@ -16,7 +16,17 @@ const linkSchema = new mongoose.Schema({
 	creator: {
 		type: mongoose.Types.ObjectId,
 		ref: 'User'
+	},
+	deleted: {
+		type: Boolean,
+		default: false
 	}
 });
+
+linkSchema.statics.findBySC = function (shortCode) {
+	const returnVal = this.findOne({ shortCode });
+	if (!returnVal || returnVal.deleted === true) return null;
+	return returnVal;
+}
 
 module.exports = mongoose.model('Link', linkSchema);
