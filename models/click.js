@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-const Link = require('./link');
-
 const clickSchema = new mongoose.Schema({
 	url: {
 		type: mongoose.Types.ObjectId,
@@ -31,18 +29,16 @@ clickSchema.virtual('clickedAt').get(function () {
 	return this.createdAt;
 });
 
-clickSchema.statics.getClicks = async function (shortCode) {
-	const link = Link.findBySC(shortCode);
-
+clickSchema.statics.getClicks = async function (linkId) {
 	const populateOptions = {
 		path: 'clicker',
-		select: 'username'
+		select: 'username -_id'
 	}
-	const clicks = this.find({ url: link._id })
+	const clicks = this.find({ url: linkId })
 		.populate(populateOptions)
-		.select('_id createdAt clicker.username');
+		.select('_id createdAt clicker ip location');
 
-	return { about: link, clicks };
+	return clicks;
 }
 
 module.exports = mongoose.model('Click', clickSchema);
