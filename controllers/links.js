@@ -8,7 +8,7 @@ module.exports.redirectController = asyncHandler(async (req, res) => {
 	const shortCode = req.params.shortCode;
 
 	// 2. Get the link mapping
-	const link = await Link.findBySC(shortCode);
+	const link = await Link.findOne({ shortCode, deleted: false });
 	if (!link || link.deleted === true) {
 		return res.status(404).json({ error: 'SHORT_CODE_DNE' });
 	}
@@ -34,7 +34,7 @@ module.exports.makeLink = asyncHandler(async (req, res) => {
 	}
 
 	// 2. Check if link is already in use
-	const link = await Link.findBySC(shortCode);
+	const link = await Link.findOne({ shortCode, deleted: false });
 	if (link) {
 		return res.status(400).json({ error: 'SHORT_CODE_INUSE' });
 	}
@@ -54,8 +54,8 @@ module.exports.deleteLink = asyncHandler(async (req, res) => {
 	const shortCode = req.params.shortCode;
 
 	// 2. Retreive link
-	const link = await Link.findBySC(shortCode);
-	if (!link || link.deleted === true) {
+	const link = await Link.findOne({ shortCode, deleted: false });
+	if (!link) {
 		return res.status(404).json({ error: 'SHORT_CODE_DNE' });
 	}
 
@@ -79,9 +79,9 @@ module.exports.updateLink = asyncHandler(async (req, res) => {
 	}
 
 	// 2. Retreive link
-	const link = await Link.findBySC(shortCode);
-	if (!link || link.deleted === true) {
-		return res.status(404).json({ error: 'SHORT_LINK_DNE' });
+	const link = await Link.findOne({ shortCode, deleted: false });
+	if (!link) {
+		return res.status(404).json({ error: 'SHORT_CODE_DNE' });
 	}
 
 	// 3. Verify ownership
