@@ -12,7 +12,7 @@ module.exports.getAnalytics = asyncHandler(async (req, res) => {
 	const userId = req.user.id;
 	const theLink = await Link.findOne({ shortCode, creator: userId });
 	if (!theLink) {
-		return res.status(400).json({ error: 'SHORTCODE_DNE' });
+		return res.status(400).json({ error: 'SHORT_CODE_DNE' });
 	}
 
 	const clicks = await Click.getClicks(theLink._id);

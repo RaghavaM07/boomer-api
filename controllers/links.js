@@ -18,6 +18,9 @@ module.exports.redirectController = asyncHandler(async (req, res) => {
 		if (!req.user || req.user.id !== link.creator.toString()) {
 			return res.status(401).json({ error: 'PRIVATE_LINK' });
 		}
+		else {
+			return res.status(200).json(link);
+		}
 	}
 
 	// 4. Redirect to destination
